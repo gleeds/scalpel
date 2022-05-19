@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scalpel-api
+  labels:
+    app: scalpel-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scalpel-api
+  template:
+    metadata:
+      labels:
+        app: scalpel-api
+    spec:
+      containers:
+        - name: scalpel-api
+          image: scalpel-api
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+      restartPolicy: Always
+          

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-mysql
+  labels:
+    app: demo-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-mysql
+  template:
+    metadata:
+      labels:
+        app: demo-mysql
+    spec:
+      containers:
+        - name: demo-mysql
+          image: demo-mysql
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              value: T3stuser
+      restartPolicy: Always
+          
