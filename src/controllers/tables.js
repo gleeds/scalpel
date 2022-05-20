@@ -9,33 +9,33 @@ class TableController {
     }
 
     async getAllTables(req, res, next) {
-        const conn = await pool.getConnection();
-        try {
-            const result = await conn.query('SHOW TABLES');
-            res.json(result);
-        } finally {
-            conn.end();
-        }
+        sdb.all('SELECT * FROM tables', (err, rows) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json(rows);
+        });
     }
 
     async getTable(req, res, next) {
-        const conn = await pool.getConnection();
-        try {
-            const result = await conn.query("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = 'northwind' AND table_name = ?", [req.params.table]);
-            res.send(TableController.toJson(result));
-        } finally {
-            conn.end();
-        }
+        sdb.get('SELECT * FROM tables WHERE name = ?', [req.params.table], (err, row) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            if (!row) {
+                return res.status(404).json({ error: `Table not found` });
+            }
+            res.json(row);
+        });
     }
 
     async getTableRelationships(req, res, next) {
-        const conn = await pool.getConnection();
-        try {
-            const result = await conn.query("SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE table_schema = 'northwind' AND table_name = ?", [req.params.table]);
-            res.send(TableController.toJson(result));
-        } finally {
-            conn.end();
-        }
+        sdb.all('SELECT * FROM relationships WHERE source_table = ?', [req.params.table], (err, rows) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json(rows);
+        });
     }
 }
 
