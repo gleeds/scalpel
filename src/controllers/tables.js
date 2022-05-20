@@ -1,4 +1,5 @@
-const { pool } = require('../database/db')
+// const { pool } = require('../database/target-db')
+const { sdb } = require('../database/scalpel-db')
 
 class TableController {
 
