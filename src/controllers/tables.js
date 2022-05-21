@@ -25,9 +25,26 @@ class TableController {
             if (!row) {
                 return res.status(404).json({ error: `Table not found` });
             }
-            res.json(row);
+            sdb.all('SELECT * FROM table_columns WHERE table_name = ?', [req.params.table], (err, column_rows) => {
+                if (!err){
+                    row.columns = column_rows;
+                }
+                else {
+                    console.log(err);
+                }
+                sdb.all('SELECT * FROM relationships WHERE source_table = ?', [req.params.table], (err, relationship_rows) => {
+                    if (!err){
+                        row.relationships = relationship_rows;
+                    }
+                    else {
+                        console.log(err);
+                    }
+                    res.json(row);
+                });
+            });       
         });
     }
+
 
     async getTableRelationships(req, res, next) {
         sdb.all('SELECT * FROM relationships WHERE source_table = ?', [req.params.table], (err, rows) => {
