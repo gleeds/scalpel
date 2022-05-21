@@ -1,12 +1,15 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const tableRoutes = require('./routers/tables');
 const configRoutes = require('./routers/config');
+const servicesRoutes = require('./routers/services');
 
 
-
+app.use(express.json());
 
 app.use('/tables',tableRoutes);
 app.use('/config',configRoutes);
+app.use('/services',servicesRoutes);
 
 
 app.get('/', (req, res) => {

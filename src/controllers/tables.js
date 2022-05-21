@@ -9,6 +9,22 @@ class TableController {
     }
 
     async getAllTables(req, res, next) {
+        if (req.query.service_name) {
+            sdb.all('SELECT * FROM tables WHERE service_name = ?', [req.query.service_name], (err, rows) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                return res.json(rows);
+            });
+        }
+        else if (req.query.no_service) {
+            sdb.all('SELECT * FROM tables WHERE service_name IS NULL', (err, rows) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                return res.json(rows);
+            });
+        }
         sdb.all('SELECT * FROM tables', (err, rows) => {
             if (err) {
                 return res.status(500).json({ error: err.message });
@@ -34,12 +50,17 @@ class TableController {
                 }
                 sdb.all('SELECT * FROM relationships WHERE source_table = ?', [req.params.table], (err, relationship_rows) => {
                     if (!err){
-                        row.relationships = relationship_rows;
+                        row.one_to_many_relationships = relationship_rows;
                     }
                     else {
                         console.log(err);
                     }
-                    res.json(row);
+                    sdb.all('SELECT * FROM relationships WHERE target_table = ?', [req.params.table], (err, mto_relationship_rows) => {
+                        if (!err){
+                            row.many_to_one_relationships = mto_relationship_rows;
+                        }
+                        res.json(row);
+                    });
                 });
             });       
         });
@@ -52,6 +73,24 @@ class TableController {
                 return res.status(500).json({ error: err.message });
             }
             res.json(rows);
+        });
+    }
+
+    async setTableService(req, res, next) {
+        sdb.run('UPDATE tables SET service_name = ? WHERE name = ?', [req.body.service_name, req.params.table], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ success:true });
+        });
+    }
+
+    async deleteTableService(req, res, next) {
+        sdb.run('UPDATE tables SET service_name = NULL WHERE name = ?', [req.params.table], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ success:true });
         });
     }
 }

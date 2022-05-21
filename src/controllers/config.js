@@ -6,7 +6,7 @@ class ConfigController {
         try {
             // Create Schema in Scalpel DB
             sdb.run('CREATE TABLE IF NOT EXISTS tables (name TEXT PRIMARY KEY,service_name TEXT)',async ()=>{
-                sdb.run('CREATE TABLE IF NOT EXISTS table_columns (table_name TEXT, column_name TEXT, data_type TEXT)',async ()=>{
+                sdb.run('CREATE TABLE IF NOT EXISTS table_columns (table_name TEXT, column_name TEXT, data_type TEXT, is_primary_key INTEGER)',async ()=>{
                     sdb.run('CREATE TABLE IF NOT EXISTS relationships (source_table TEXT, source_column TEXT, target_table TEXT, target_column TEXT)',async ()=>{
                         sdb.run('CREATE TABLE IF NOT EXISTS services (name TEXT PRIMARY KEY, color TEXT)',async ()=>{
                             const targetSchema = 'northwind';
@@ -27,8 +27,9 @@ class ConfigController {
                                     for (var j=0; j< table.length; j++){
                                         const columnName = table[j].COLUMN_NAME;
                                         const dataType = table[j].DATA_TYPE;
+                                        const isPrimaryKey = table[j].COLUMN_KEY == 'PRI' ? 1 : 0;
                                         console.log(`Adding column ${columnName} to Scalpel DB`);
-                                        sdb.run('INSERT INTO table_columns (table_name, column_name, data_type) VALUES (?, ?, ?)', [tableName, columnName, dataType]);
+                                        sdb.run('INSERT INTO table_columns (table_name, column_name, data_type, is_primary_key) VALUES (?, ?, ?, ?)', [tableName, columnName, dataType, isPrimaryKey]);
                                     }
                                     // Insert relationships into Scalpel DB
                                     const relationships = await conn.query("SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE table_schema = ? AND table_name = ? AND referenced_table_name IS NOT NULL", [targetSchema, tableName]);
