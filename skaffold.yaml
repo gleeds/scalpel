@@ -5,22 +5,30 @@ metadata:
 build:
   artifacts:
   - image: scalpel-api
+    context: ./src
     docker:
       cacheFrom:
         - scalpel-api
-      dockerfile: ./Dockerfile
+      dockerfile: ./src/Dockerfile
     sync:
       manual:
         - src: ./src
-          dest: /usr/src/app
-      
+          dest: /usr/src/app    
+  - image: scalpel-ui
+    context: ./ui
+    docker:
+      cacheFrom:
+        - scalpel-ui
+      dockerfile: ./ui/Dockerfile
+    sync:
+      manual:
+        - src: ./ui
+          dest: /usr/src/app   
   - image: demo-mysql
     docker:
       cacheFrom:
         - demo-mysql
       dockerfile: ./demo-mysql/Dockerfile
-
-
 deploy:
   kubectl:
     manifests:

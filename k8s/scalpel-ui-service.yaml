@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: scalpel-ui
+  name: scalpel-ui
+spec:
+  selector:
+    app: scalpel-ui
+  ports:
+    - port: 3001
+      name: http
+      targetPort: 3000
+  type: NodePort
