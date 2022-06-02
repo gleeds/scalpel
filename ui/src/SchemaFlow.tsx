@@ -1,7 +1,16 @@
 import React, { useState, useRef, useCallback } from 'react';
 import ReactFlow, { MiniMap, Controls, ReactFlowInstance, useNodesState, useReactFlow,Node, Edge, XYPosition, ReactFlowProvider } from 'react-flow-renderer';
 
+import { TableDetails,Column,Relationship } from './DataInterfaces';
+import TableNode from './TableNode';
+
+const nodeTypes = {
+    table: TableNode,
+  };
+
 function SchemaFlow() {
+    //Declare Custom Node Type
+
 
     let id = 3;
     const getId = () => `dndnode_${id++}`;
@@ -64,23 +73,54 @@ function SchemaFlow() {
             console.log(position);
         }
 
-        
-          const newNode:Node = {
-            id: getId(),
-            type:'output',
+        getTableData(type.name,position,nodes);
+          
+
+    },[reactFlowInstance]);
+
+    const getTableData = async (name:string,position:XYPosition, currentNodes:Node<any>[]) => {
+        const response = await fetch(`http://localhost:3000/tables/${name}`);
+        const tableDetails = await response.json() as TableDetails;
+        const newNode:Node = {
+            id: name,
+            type:'table',
             position: position,
-            data: { label: `${type.name}` },
+            data: tableDetails,
           };
 
         console.log(newNode);
         setNodes((nds)=>nds.concat(newNode));
 
-    },[reactFlowInstance]);
+        //Add edges if present
+        // var newEdges: Edge<any>[] = [];
+        // tableDetails.one_to_many_relationships.forEach((relationship:Relationship)=>{
+        //     newEdges.push({
+        //         id: getId(),
+        //         source: tableDetails.name,
+        //         target: relationship.source_table
+        //     });
+            
+        //     // if (currentNodes.some(n => n.data.name === relationship.target_table)) {
+        //     //     console.log(relationship);
+        //     //     setEdges((edges)=>edges.concat({
+        //     //         id: getId(),
+        //     //         source: tableDetails.name,
+        //     //         target: relationship.source_table
+        //     //     }));
+        //     // }
+        // });
+        // if (newEdges.length > 0) {setEdges((edges)=>edges.concat(newEdges))};
+    }
 
   return (
       <ReactFlowProvider>
         <div ref={reactFlowWrapper} style={{width:'100%',height:'100%'}}>
-            <ReactFlow onInit={setReactFlowInstance} defaultNodes={nodes} defaultEdges={edges} onDrop={onDrop} onDragOver={onDragOver} fitView>
+            <ReactFlow onInit={setReactFlowInstance} 
+                nodes={nodes} 
+                edges={edges} 
+                nodeTypes={nodeTypes}
+                onDrop={onDrop} 
+                onDragOver={onDragOver} fitView>
                 <MiniMap />
                 <Controls />
             </ReactFlow>

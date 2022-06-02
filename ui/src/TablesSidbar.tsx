@@ -2,11 +2,8 @@ import { useState, useEffect } from "react";
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import { TableItem } from './DataInterfaces';
 
-interface TableItem {
-    name: string;
-    service_name: string;
-}
 
 function TablesSidbar() {
     const [data, setData] = useState<TableItem[]>([]);

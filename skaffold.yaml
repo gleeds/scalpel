@@ -12,18 +12,22 @@ build:
       dockerfile: ./src/Dockerfile
     sync:
       manual:
-        - src: ./src
+        - src: .
           dest: /usr/src/app    
   - image: scalpel-ui
     context: ./ui
     docker:
-      cacheFrom:
-        - scalpel-ui
+      # cacheFrom:
+      #   - scalpel-ui
       dockerfile: ./ui/Dockerfile
     sync:
-      manual:
-        - src: ./ui
-          dest: /usr/src/app   
+      # manual:
+      #   - src: ./ui
+      #     dest: /usr/src/app   
+      infer:
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.css'
   - image: demo-mysql
     docker:
       cacheFrom:
