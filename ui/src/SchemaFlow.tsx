@@ -1,16 +1,32 @@
-import React, { useState, useRef, useCallback } from 'react';
-import ReactFlow, { MiniMap, Controls, ReactFlowInstance, useNodesState, useReactFlow,Node, Edge, XYPosition, ReactFlowProvider } from 'react-flow-renderer';
+import React, { useState, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import ReactFlow, { MiniMap, Controls, ReactFlowInstance, useNodesState, useReactFlow,Node, Edge, XYPosition, ReactFlowProvider, useEdgesState, CoordinateExtent, Position } from 'react-flow-renderer';
 
 import { TableDetails,Column,Relationship } from './DataInterfaces';
 import TableNode from './TableNode';
+
+import dagre from 'dagre';
 
 const nodeTypes = {
     table: TableNode,
   };
 
-function SchemaFlow() {
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+
+const nodeExtent: CoordinateExtent = [
+    [0, 0],
+    [1000, 1000],
+  ];
+
+const SchemaFlow = forwardRef((props,ref) => {
     //Declare Custom Node Type
 
+    useImperativeHandle(ref,()=>({
+        autoArange(){
+            onLayout('LR');
+        }
+    }))
 
     let id = 3;
     const getId = () => `dndnode_${id++}`;
@@ -20,34 +36,34 @@ function SchemaFlow() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
     const initialNodes: Node[] = [
-    {
-        id: '1',
-        type: 'input',
-        data: { label: 'Input Node' },
-        position: { x: 250, y: 25 },
-    },
+    // {
+    //     id: '1',
+    //     type: 'input',
+    //     data: { label: 'Input Node' },
+    //     position: { x: 250, y: 25 },
+    // },
     
-    {
-        id: '2',
-        // you can also pass a React component as a label
-        data: { label: <div>Default Node</div> },
-        position: { x: 100, y: 125 },
-    },
-    {
-        id: '3',
-        type: 'output',
-        data: { label: 'Output Node' },
-        position: { x: 250, y: 250 },
-    },
+    // {
+    //     id: '2',
+    //     // you can also pass a React component as a label
+    //     data: { label: <div>Default Node</div> },
+    //     position: { x: 100, y: 125 },
+    // },
+    // {
+    //     id: '3',
+    //     type: 'output',
+    //     data: { label: 'Output Node' },
+    //     position: { x: 250, y: 250 },
+    // },
     ];
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     
     const initialEdges: Edge[] = [
-    { id: 'e1-2', source: '1', target: '2' },
-    { id: 'e2-3', source: '2', target: '3', animated: true },
+    // { id: 'e1-2', source: '1', target: '2' },
+    // { id: 'e2-3', source: '2', target: '3', animated: true },
     ];
 
-    const [edges, setEdges] = useState<Edge[]>(initialEdges);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
     const onDragOver = useCallback((event: any) => {
         event.preventDefault();
@@ -85,20 +101,26 @@ function SchemaFlow() {
             id: name,
             type:'table',
             position: position,
-            data: tableDetails,
+            data: {
+                table:tableDetails,
+                onAddManyToOne: onTableNodeAddManyToOne,
+                onAddOneToMany: onTableNodeAddOneToMany
+            }
           };
 
         console.log(newNode);
         setNodes((nds)=>nds.concat(newNode));
 
         //Add edges if present
-        // var newEdges: Edge<any>[] = [];
-        // tableDetails.one_to_many_relationships.forEach((relationship:Relationship)=>{
-        //     newEdges.push({
-        //         id: getId(),
-        //         source: tableDetails.name,
-        //         target: relationship.source_table
-        //     });
+        var newEdges: Edge<any>[] = [];
+        tableDetails.one_to_many_relationships.forEach((relationship:Relationship)=>{
+            newEdges.push({
+                id: getId(),
+                source: tableDetails.name,
+                target: relationship.target_table,
+                label: `${relationship.source_column}:${relationship.target_column}`
+            });
+        });
             
         //     // if (currentNodes.some(n => n.data.name === relationship.target_table)) {
         //     //     console.log(relationship);
@@ -109,8 +131,47 @@ function SchemaFlow() {
         //     //     }));
         //     // }
         // });
-        // if (newEdges.length > 0) {setEdges((edges)=>edges.concat(newEdges))};
+        if (newEdges.length > 0) {setEdges((edges)=>edges.concat(newEdges))};
     }
+
+    const onLayout = (direction: string) => {
+        const isHorizontal = direction === 'LR';
+        dagreGraph.setGraph({ rankdir: direction });
+    
+        nodes.forEach((node) => {
+          dagreGraph.setNode(node.id, { width: node.width, height: node.height });
+        });
+    
+        edges.forEach((edge) => {
+          dagreGraph.setEdge(edge.source, edge.target);
+        });
+    
+        dagre.layout(dagreGraph);
+    
+        const layoutedNodes = nodes.map((node) => {
+          const nodeWithPosition = dagreGraph.node(node.id);
+          node.targetPosition = isHorizontal ? Position.Left : Position.Top;
+          node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
+          // we need to pass a slightly different position in order to notify react flow about the change
+          // @TODO how can we change the position handling so that we dont need this hack?
+          node.position = { x: nodeWithPosition.x + Math.random() / 1000, y: nodeWithPosition.y };
+    
+          return node;
+        });
+    
+        setNodes(layoutedNodes);
+      };
+
+      const onTableNodeAddOneToMany = (table:TableDetails) => {
+        table.one_to_many_relationships.forEach((relationship:Relationship)=>{
+            getTableData(relationship.target_table,{x:0,y:0},nodes);
+        });
+      }
+      const onTableNodeAddManyToOne = (table:TableDetails) => {
+        table.many_to_one_relationships.forEach((relationship:Relationship)=>{
+            getTableData(relationship.source_table,{x:0,y:0},nodes);
+        });
+      }
 
   return (
       <ReactFlowProvider>
@@ -120,13 +181,16 @@ function SchemaFlow() {
                 edges={edges} 
                 nodeTypes={nodeTypes}
                 onDrop={onDrop} 
-                onDragOver={onDragOver} fitView>
+                onDragOver={onDragOver}                 
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                fitView>
                 <MiniMap />
                 <Controls />
             </ReactFlow>
         </div>
         </ReactFlowProvider>
   );
-}
+});
 
 export default SchemaFlow;

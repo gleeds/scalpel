@@ -22,7 +22,7 @@ function ServicesSidbar() {
     }, []);
 
     return (
-        <List component="nav" sx={{overflow:'auto', maxHeight:'300px'}} subheader="Services">
+        <List component="nav" sx={{overflow:'auto', flexBasis:'300px'}} subheader="Services">
             {!data || data.length === 0 ? (
                 <ListItemText primary="Add a Service" />
             ):''}
