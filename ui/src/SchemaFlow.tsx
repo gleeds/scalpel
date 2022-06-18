@@ -6,6 +6,8 @@ import TableNode from './TableNode';
 
 import dagre from 'dagre';
 
+import {useDroppable} from '@dnd-kit/core';
+
 const nodeTypes = {
     table: TableNode,
   };
@@ -25,6 +27,9 @@ const SchemaFlow = forwardRef((props,ref) => {
     useImperativeHandle(ref,()=>({
         autoArange(){
             onLayout('LR');
+        },
+        dropHandler(event:any,tableName:string){
+          onDrop(event,tableName);
         }
     }))
 
@@ -35,35 +40,15 @@ const SchemaFlow = forwardRef((props,ref) => {
     const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance|undefined>(undefined);
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
-    const initialNodes: Node[] = [
-    // {
-    //     id: '1',
-    //     type: 'input',
-    //     data: { label: 'Input Node' },
-    //     position: { x: 250, y: 25 },
-    // },
-    
-    // {
-    //     id: '2',
-    //     // you can also pass a React component as a label
-    //     data: { label: <div>Default Node</div> },
-    //     position: { x: 100, y: 125 },
-    // },
-    // {
-    //     id: '3',
-    //     type: 'output',
-    //     data: { label: 'Output Node' },
-    //     position: { x: 250, y: 250 },
-    // },
-    ];
+    const initialNodes: Node[] = [];
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     
-    const initialEdges: Edge[] = [
-    // { id: 'e1-2', source: '1', target: '2' },
-    // { id: 'e2-3', source: '2', target: '3', animated: true },
-    ];
-
+    const initialEdges: Edge[] = [];
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+    const {setNodeRef} = useDroppable({
+      id: 'schemaflow',
+    });
 
     const onDragOver = useCallback((event: any) => {
         event.preventDefault();
@@ -71,12 +56,12 @@ const SchemaFlow = forwardRef((props,ref) => {
         console.log("dragover");
       }, []);
 
-    const onDrop = useCallback((event: any)=>{
+    const onDrop = useCallback((event: any,tableName:string)=>{
         event.preventDefault();
-        const type = JSON.parse(event.dataTransfer.getData('application/scalpeltable'));
+        // const type = JSON.parse(event.dataTransfer.getData('application/scalpeltable'));
 
-        console.log("dropped");
-        console.log(type);
+        // console.log("dropped");
+        // console.log(type);
 
         const reactFlowBounds = reactFlowWrapper?.current?.getBoundingClientRect();
         console.log(reactFlowBounds);
@@ -89,7 +74,7 @@ const SchemaFlow = forwardRef((props,ref) => {
             console.log(position);
         }
 
-        getTableData(type.name,position,nodes);
+        getTableData(tableName,position,nodes);
           
 
     },[reactFlowInstance]);
@@ -180,11 +165,12 @@ const SchemaFlow = forwardRef((props,ref) => {
                 nodes={nodes} 
                 edges={edges} 
                 nodeTypes={nodeTypes}
-                onDrop={onDrop} 
                 onDragOver={onDragOver}                 
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                fitView>
+                fitView
+                ref={setNodeRef}
+                >
                 <MiniMap />
                 <Controls />
             </ReactFlow>

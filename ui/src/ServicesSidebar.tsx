@@ -1,20 +1,20 @@
-import { useState, useEffect } from "react";
+import React,{ useState, useEffect,useCallback } from "react";
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import {ScalpelContextType, ServiceItem} from './DataInterfaces';
+import { ScalpelContext } from "./ScalpelContext";
+import ServiceListItem from "./ServiceListItem";
 
-interface ServiceItem {
-    name: string;
-    color: string;
-}
 
-function ServicesSidbar() {
-    const [data, setData] = useState<ServiceItem[]>([]);
+export const ServicesSidbar: React.FC =()=>{
+    const { services,setServices } = React.useContext(ScalpelContext) as ScalpelContextType;
+
 
     const getData = async () => {
         const response = await fetch("http://localhost:3000/services");
         const json = await response.json() as ServiceItem[];
-        setData(json);
+        setServices(json);
     }
     
     useEffect(() => {
@@ -22,14 +22,12 @@ function ServicesSidbar() {
     }, []);
 
     return (
-        <List component="nav" sx={{overflow:'auto', flexBasis:'300px'}} subheader="Services">
-            {!data || data.length === 0 ? (
+        <List component="nav" sx={{overflow:'auto', flexBasis:'300px'}}>
+            {!services || services.length === 0 ? (
                 <ListItemText primary="Add a Service" />
             ):''}
-            {data && data.map((service) => (
-                <ListItemButton key={service.name} draggable>
-                    <ListItemText primary={service.name} color={service.color} />
-                </ListItemButton>
+            {services && services.map((service) => (
+                <ServiceListItem service={service} key={service.name}/>
             ))}
         </List>
     );

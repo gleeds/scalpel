@@ -22,6 +22,9 @@ class ServicesController {
                 if (!err){
                     row.tables = table_rows;
                 }
+                else {
+                    console.log(err);
+                }
                 res.json(row);
             });
         });
@@ -34,7 +37,7 @@ class ServicesController {
                 if (err) {
                     return res.status(500).json({ error: err.message });
                 }
-                res.json({ id: this.lastID });
+                res.json({ name: req.body.name, color: req.body.color });
             });
     }
 

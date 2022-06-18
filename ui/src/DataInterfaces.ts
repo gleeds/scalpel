@@ -24,3 +24,19 @@ export interface TableDetails {
     one_to_many_relationships: Relationship[];
     many_to_one_relationships: Relationship[];
 }
+
+export interface ServiceItem {
+    name: string;
+    color: string;
+}
+
+export type ScalpelContextType = {
+    services: ServiceItem[];
+    addService: (service: ServiceItem) => void;
+    setServices: (services: ServiceItem[]) => void;
+    addServiceModalOpen: boolean;
+    updateAddServiceModalOpen: (open: boolean) => void;
+    // setSchemaFlowDropHandler: (callback:()=>void) => void;
+    // invokeSchemaFlowDropHandler: () => void;
+
+}

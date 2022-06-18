@@ -3,6 +3,7 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import { TableItem } from './DataInterfaces';
+import TableListItem from "./TableListItem";
 
 
 function TablesSidbar() {
@@ -18,18 +19,12 @@ function TablesSidbar() {
         getData();
     }, []);
 
-    const onDragStart = (e: any, table: TableItem) => {
-        console.log("starting Drag");
-        e.dataTransfer.setData("application/scalpeltable", JSON.stringify(table));
-        e.dataTransfer.effectAllowed = 'move';
-    };
+    
 
     return (
         <List component="nav" sx={{overflow:'auto',flex: '1 1 auto'}} subheader="Tables">
             {data && data.map((table) => (
-                <ListItemButton key={table.name} draggable onDragStart={(event)=>{onDragStart(event,table)}}>
-                    <ListItemText primary={table.name} />
-                </ListItemButton>
+                <TableListItem table={table} key={table.name}/>
             ))}
         </List>
     );
