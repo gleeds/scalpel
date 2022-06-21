@@ -1,0 +1,17 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/upload-artifact@v3
+      with:
+        name: k8s
+        path: k8s
+
