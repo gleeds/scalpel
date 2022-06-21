@@ -4,7 +4,7 @@ metadata:
   name: scalpel
 build:
   artifacts:
-  - image: scalpel-api
+  - image: ghcr.io/gleeds/scalpel-api
     context: ./src
     docker:
       cacheFrom:
@@ -14,7 +14,7 @@ build:
       manual:
         - src: .
           dest: /usr/src/app    
-  - image: scalpel-ui
+  - image: ghcr.io/gleeds/scalpel-ui
     context: ./ui
     docker:
       # cacheFrom:

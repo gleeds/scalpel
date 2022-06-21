@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: scalpel-ui 
-          image: scalpel-ui     
+          image: ghcr.io/gleeds/scalpel-ui:latest     
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
