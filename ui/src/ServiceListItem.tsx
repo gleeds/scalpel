@@ -1,8 +1,9 @@
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import { ServiceItem } from "./DataInterfaces";
+import { DraggedDataType, ServiceItem } from "./DataInterfaces";
 
-import {useDroppable} from '@dnd-kit/core';
+import {useDroppable, useDraggable} from '@dnd-kit/core';
+import {useCombinedRefs} from '@dnd-kit/utilities';
 
 type ServiceListItemProps = {
     service: ServiceItem
@@ -12,10 +13,17 @@ export const ServiceListItem = (props:ServiceListItemProps) =>{
 
     const service: ServiceItem = props.service;
 
-    const {setNodeRef} = useDroppable({
+    const {setNodeRef: setDroppableNodeRef} = useDroppable({
         id:service.name,
         data: service
     });
+
+    const {attributes, listeners, transform,setNodeRef: setDraggableNodeRef} = useDraggable({
+        id:service.name,
+        data: {service:service,type:DraggedDataType.Service}
+    });
+
+    const setNodeRef = useCombinedRefs(setDraggableNodeRef, setDroppableNodeRef);
 
     function pickTextColorBasedOnBgColorSimple(bgColor:string, lightColor:string, darkColor:string) {
         var color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
@@ -27,7 +35,7 @@ export const ServiceListItem = (props:ServiceListItemProps) =>{
       }
 
     return (
-        <ListItemButton key={service.name} ref={setNodeRef} sx={{backgroundColor:service.color,color:pickTextColorBasedOnBgColorSimple(service.color,'#FFFFFF','#000000')}}>
+        <ListItemButton key={service.name} ref={setNodeRef} sx={{backgroundColor:service.color,color:pickTextColorBasedOnBgColorSimple(service.color,'#FFFFFF','#000000')}}   {...listeners} {...attributes}>
             <ListItemText primary={service.name}/>
         </ListItemButton>
     );

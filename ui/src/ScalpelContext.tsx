@@ -6,9 +6,8 @@ export const ScalpelContext = createContext<ScalpelContextType>({
     addService: (service: ServiceItem) => {},
     setServices: (services: ServiceItem[]) => {},
     updateAddServiceModalOpen: (open: boolean) => {},
-    addServiceModalOpen: false//,
-    // setSchemaFlowDropHandler: (callback:()=>void)=>{},
-    // invokeSchemaFlowDropHandler: ()=>{}
+    addServiceModalOpen: false,
+    findService: (serviceName: string) => {return undefined;}
 });
 
 type ScalpelProviderProps ={
@@ -33,6 +32,10 @@ export const ScalpelProvider: React.FC<ScalpelProviderProps> = ({ children }) =>
         setAddServiceModalOpen(open);
     }
 
+    const findService = (serviceName: string) => {
+        return services.find(service => service.name === serviceName);
+    }
 
-    return <ScalpelContext.Provider value={{ services, addService, setServices,addServiceModalOpen,updateAddServiceModalOpen }}>{children}</ScalpelContext.Provider>;
+
+    return <ScalpelContext.Provider value={{ services, addService, setServices,addServiceModalOpen,updateAddServiceModalOpen,findService }}>{children}</ScalpelContext.Provider>;
 };

@@ -1,12 +1,13 @@
 import React, { useState, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import ReactFlow, { MiniMap, Controls, ReactFlowInstance, useNodesState, useReactFlow,Node, Edge, XYPosition, ReactFlowProvider, useEdgesState, CoordinateExtent, Position } from 'react-flow-renderer';
 
-import { TableDetails,Column,Relationship } from './DataInterfaces';
+import { TableDetails,Column,Relationship, ScalpelContextType, TableItem } from './DataInterfaces';
 import TableNode from './TableNode';
 
 import dagre from 'dagre';
 
 import {useDroppable} from '@dnd-kit/core';
+import { ScalpelContext } from './ScalpelContext';
 
 const nodeTypes = {
     table: TableNode,
@@ -30,6 +31,9 @@ const SchemaFlow = forwardRef((props,ref) => {
         },
         dropHandler(event:any,tableName:string){
           onDrop(event,tableName);
+        },
+        dropServiceHandler(event:any,serviceName:string){
+          onDropService(event,serviceName);
         }
     }))
 
@@ -76,6 +80,36 @@ const SchemaFlow = forwardRef((props,ref) => {
 
         getTableData(tableName,position,nodes);
           
+
+    },[reactFlowInstance]);
+
+    const { findService } = React.useContext(ScalpelContext) as ScalpelContextType;
+
+    const onDropService = useCallback(async (event: any,serviceName:string)=>{
+        event.preventDefault();
+        const reactFlowBounds = reactFlowWrapper?.current?.getBoundingClientRect();
+        var position:XYPosition = {x:0,y:0};
+        if (reactFlowBounds && reactFlowInstance) {
+          position = reactFlowInstance.project({
+              x: event.clientX - reactFlowBounds?.left,
+              y: event.clientY - reactFlowBounds?.top,
+            });
+          console.log(position);
+      }
+
+      const response = await fetch(`http://localhost:3000/tables?service_name=${serviceName}`);
+      const serviceTables = await response.json() as TableItem[];
+      serviceTables.forEach(table => {
+        getTableData(table.name,position,nodes);
+      });
+      //Let's get a list of tables for the service and add them to the graph
+      // const service = findService(serviceName);
+      // if(service){
+      //   service.tables.forEach(table=>{
+      //     getTableData(table.name,position,nodes);
+      //   });
+      // }
+
 
     },[reactFlowInstance]);
 

@@ -30,12 +30,21 @@ export interface ServiceItem {
     color: string;
 }
 
+export enum DraggedDataType{Service, Table}
+
+export interface DraggedData {
+    type: DraggedDataType;
+    service: ServiceItem;
+    table: TableItem;
+}
+
 export type ScalpelContextType = {
     services: ServiceItem[];
     addService: (service: ServiceItem) => void;
     setServices: (services: ServiceItem[]) => void;
     addServiceModalOpen: boolean;
     updateAddServiceModalOpen: (open: boolean) => void;
+    findService: (serviceName: string) => ServiceItem | undefined;
     // setSchemaFlowDropHandler: (callback:()=>void) => void;
     // invokeSchemaFlowDropHandler: () => void;
 

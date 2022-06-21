@@ -18,12 +18,14 @@ import AddServiceModal from './AddServiceModal';
 
 import ReactFlow, { MiniMap, Controls } from 'react-flow-renderer';
 import {ScalpelProvider} from './ScalpelContext';
-import { ServiceItem, TableItem } from './DataInterfaces';
+import { DraggedData, ServiceItem, TableItem,DraggedDataType } from './DataInterfaces';
 import TableListItem from './TableListItem';
+import ServiceListItem from './ServiceListItem';
 
 interface SchemaFlowHandle {
   autoArange: () => void;
   dropHandler: (event:any,tableName:string) => void;
+  dropServiceHandler: (event:any,serviceName:string) => void;
 }
 
 
@@ -60,35 +62,48 @@ function App() {
 
   const mdTheme = createTheme();
   const [open, setOpen] = React.useState(true);
-  const [activeId, setActiveId] = React.useState<TableItem|null>(null);
+  const [draggingTable, setDraggingTable] = React.useState<TableItem|null>(null);
+  const [draggingService, setDraggingService] = React.useState<ServiceItem|null>(null);
 
   function handleDragStart(event: DragStartEvent){
-    setActiveId(event.active.data.current as TableItem);
+    if ((event.active.data.current as DraggedData).type === DraggedDataType.Table) {
+      setDraggingTable((event.active.data.current as DraggedData).table);
+    }
+    else {
+      setDraggingService((event.active.data.current as DraggedData).service);
+    }
   }
 
   async function handleDragEnd(event: DragEndEvent){
     console.log(event);
+    const draggedData: DraggedData = event.active.data.current as DraggedData;
     const table: TableItem = event.active.data.current as TableItem;
     if (event.over){
-      if (event.over.id==='schemaflow'){
-        schemaFlowRef.current.dropHandler(event.activatorEvent,table.name);
+      if (event.over.id==='schemaflow' && draggedData.type === DraggedDataType.Table){
+        schemaFlowRef.current.dropHandler(event.activatorEvent,draggedData.table.name);
+      }
+      else if (event.over.id==='schemaflow' && draggedData.type === DraggedDataType.Service){
+        schemaFlowRef.current.dropServiceHandler(event.activatorEvent,draggedData.service.name);
       }
       else {
-        const service: ServiceItem = event.over.data.current as ServiceItem;
-        const response = await fetch(`http://localhost:3000/tables/${table.name}/services`,{
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                service_name: service.name
-            })
-        });
-        const json = await response.json() as ServiceItem;
-        console.log(json);
+        if (draggedData.type === DraggedDataType.Table){
+          const service: ServiceItem = event.over.data.current as ServiceItem;
+          const response = await fetch(`http://localhost:3000/tables/${draggedData.table.name}/services`,{
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  service_name: service.name
+              })
+          });
+          const json = await response.json() as ServiceItem;
+          console.log(json);
+        }
       }
     }
-    setActiveId(null);
+    setDraggingTable(null);
+    setDraggingService(null);
   }
 
   return (
@@ -125,8 +140,13 @@ function App() {
       </Box>
       <AddServiceModal/>
       <DragOverlay>
-        {activeId ? (
-          <TableListItem  table={activeId} key={activeId.name+'overlay'}/>
+        {draggingTable ? (
+          <TableListItem  table={draggingTable} key={draggingTable.name+'overlay'}/>
+        ): null}
+      </DragOverlay>
+      <DragOverlay>
+        {draggingService ? (
+          <ServiceListItem  service={draggingService} key={draggingService.name+'overlay'}/>
         ): null}
       </DragOverlay>
       </ScalpelProvider>

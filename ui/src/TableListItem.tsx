@@ -1,6 +1,6 @@
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import { TableItem } from "./DataInterfaces";
+import { DraggedDataType, TableItem } from "./DataInterfaces";
 
 import {useDraggable} from '@dnd-kit/core';
 
@@ -15,7 +15,7 @@ const TableListItem = (props: TableListItemProps) => {
 
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
         id:table.name,
-        data: table
+        data: {table:table,type:DraggedDataType.Table}
     });
 
     const style = transform ? {

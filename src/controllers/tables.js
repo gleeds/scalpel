@@ -25,12 +25,14 @@ class TableController {
                 return res.json(rows);
             });
         }
-        sdb.all('SELECT * FROM tables', (err, rows) => {
-            if (err) {
-                return res.status(500).json({ error: err.message });
-            }
-            res.json(rows);
-        });
+        else {
+            sdb.all('SELECT * FROM tables', (err, rows) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.json(rows);
+            });
+        }
     }
 
     async getTable(req, res, next) {
